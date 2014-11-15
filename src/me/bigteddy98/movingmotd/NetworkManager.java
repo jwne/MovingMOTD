@@ -17,25 +17,10 @@
  */
 package me.bigteddy98.movingmotd;
 
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.socket.SocketChannel;
+public class NetworkManager {
 
-public class ConnectionInitialization extends ChannelInitializer<SocketChannel> {
-
-	private final String toHost;
-	private final int toPort;
-	private final NetworkManager networkManager;
-
-	public ConnectionInitialization(String toHost, int toPort) {
-		this.toHost = toHost;
-		this.toPort = toPort;
-		this.networkManager = new NetworkManager(toHost, toPort);
+	public NetworkManager(String toHost, int toPort) {
+		// TODO Auto-generated constructor stub
 	}
 
-	@Override
-	protected void initChannel(SocketChannel channel) throws Exception {
-		ChannelPipeline pipe = channel.pipeline();
-		pipe.addLast("proxy_forward", new ServerSideConnection());
-	}
 }
