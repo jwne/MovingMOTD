@@ -18,6 +18,8 @@
 package me.bigteddy98.movingmotd;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -63,9 +65,36 @@ public class ClientSideConnection extends ChannelHandlerAdapter {
 		this.outgoingChannel = f.channel();
 	}
 
+	private Stage stage = Stage.HANDSHAKE;
+
 	@Override
 	public void channelRead(final ChannelHandlerContext ctx, Object msg) throws Exception {
-		this.outgoingChannel.writeAndFlush(msg).addListener(new ChannelFutureListener() {
+		ByteBuf clonedBuf = Unpooled.copiedBuffer((ByteBuf) msg);
+		ByteBuf originalBuf = (ByteBuf) msg;
+
+		int packetSize = PacketUtils.readVarInt(originalBuf);
+		if (originalBuf.readableBytes() < packetSize) {
+			System.out.println("Packet was smaller than the lenght.");
+		}
+		int id = PacketUtils.readVarInt(originalBuf);
+		if (this.stage == Stage.HANDSHAKE) {
+			if (id != 0x00) {
+				System.out.println("Handshake ID was not equal to 0x00.");
+			}
+			// followed by varint, string, unsigned short and another varint
+			PacketUtils.readVarInt(originalBuf);
+			PacketUtils.readString(originalBuf);
+			originalBuf.readUnsignedShort();
+			int nextStage = PacketUtils.readVarInt(originalBuf);
+			this.stage = Stage.fromId(nextStage);
+		} else if (this.stage == Stage.LOGIN) {
+			// just sent it
+		} else if (this.stage == Stage.STATUS) {
+			// TODO someone is pinging!
+		}
+
+		originalBuf.release();
+		this.outgoingChannel.writeAndFlush(clonedBuf).addListener(new ChannelFutureListener() {
 			@Override
 			public void operationComplete(ChannelFuture future) throws Exception {
 				if (future.isSuccess()) {
