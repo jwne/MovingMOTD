@@ -91,8 +91,12 @@ public class ClientSideConnection extends ChannelHandlerAdapter {
 			// just sent it
 		} else if (this.stage == Stage.STATUS) {
 			// TODO someone is pinging!
+			
+			
+			
+			originalBuf.release();
+			return;
 		}
-
 		originalBuf.release();
 		this.outgoingChannel.writeAndFlush(clonedBuf).addListener(new ChannelFutureListener() {
 			@Override
