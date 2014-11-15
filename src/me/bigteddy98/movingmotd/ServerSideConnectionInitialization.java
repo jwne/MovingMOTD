@@ -23,17 +23,15 @@ import io.netty.channel.socket.SocketChannel;
 
 public class ServerSideConnectionInitialization extends ChannelInitializer<SocketChannel> {
 
-	private final String toHost;
-	private final int toPort;
+	private final NetworkManager networkManager;
 
-	public ServerSideConnectionInitialization(String toHost, int toPort) {
-		this.toHost = toHost;
-		this.toPort = toPort;
+	public ServerSideConnectionInitialization(NetworkManager networkManager) {
+		this.networkManager = networkManager;
 	}
 
 	@Override
 	protected void initChannel(SocketChannel channel) throws Exception {
 		ChannelPipeline pipe = channel.pipeline();
-		pipe.addLast("proxy_forward", new ServerSideConnection());
+		pipe.addLast("proxy_forward", new ServerSideConnection(this.networkManager));
 	}
 }

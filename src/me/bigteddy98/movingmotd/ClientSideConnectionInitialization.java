@@ -18,6 +18,7 @@
 package me.bigteddy98.movingmotd;
 
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 
 public class ClientSideConnectionInitialization extends ChannelInitializer<SocketChannel> {
@@ -34,6 +35,7 @@ public class ClientSideConnectionInitialization extends ChannelInitializer<Socke
 
 	@Override
 	protected void initChannel(SocketChannel ch) throws Exception {
-
+		ChannelPipeline pipe = ch.pipeline();
+		pipe.addLast("proxy_handler_clientside", new ClientSideConnection(this.networkManager, this.hostname, this.toPort));
 	}
 }

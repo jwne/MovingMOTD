@@ -17,32 +17,56 @@
  */
 package me.bigteddy98.movingmotd;
 
-import io.netty.buffer.Unpooled;
+import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOption;
 
 public class ClientSideConnection extends ChannelHandlerAdapter {
-	private final NetworkManager networkManager;
-	private final Channel inboundChannel;
 
-	public ClientSideConnection(NetworkManager networkManager, Channel inboundChannel) {
+	private final NetworkManager networkManager;
+	private final String toHostname;
+	private final int toPort;
+
+	public volatile Channel incomingChannel;
+	public volatile Channel outgoingChannel;
+
+	public ClientSideConnection(NetworkManager networkManager, String hostname, int toPort) {
 		this.networkManager = networkManager;
-		this.inboundChannel = inboundChannel;
+		this.toHostname = hostname;
+		this.toPort = toPort;
 	}
 
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
-		ctx.read();
-		ctx.write(Unpooled.EMPTY_BUFFER);
+		this.networkManager.incomingChannel = ctx.channel();
+		this.networkManager.clientsidePipeline = ctx.pipeline();
+
+		Bootstrap bootstrab = new Bootstrap();
+		bootstrab.group(incomingChannel.eventLoop());
+		bootstrab.channel(ctx.channel().getClass());
+		bootstrab.handler(new ServerSideConnectionInitialization(networkManager));
+		bootstrab.option(ChannelOption.AUTO_READ, false);
+		ChannelFuture f = bootstrab.connect(this.toHostname, this.toPort);
+		f.addListener(new ChannelFutureListener() {
+			@Override
+			public void operationComplete(ChannelFuture future) throws Exception {
+				if (future.isSuccess()) {
+					incomingChannel.read();
+				} else {
+					incomingChannel.close();
+				}
+			}
+		});
+		this.outgoingChannel = f.channel();
 	}
 
 	@Override
 	public void channelRead(final ChannelHandlerContext ctx, Object msg) throws Exception {
-		// TODO decode and read packets here
-		inboundChannel.writeAndFlush(msg).addListener(new ChannelFutureListener() {
+		this.outgoingChannel.writeAndFlush(msg).addListener(new ChannelFutureListener() {
 			@Override
 			public void operationComplete(ChannelFuture future) throws Exception {
 				if (future.isSuccess()) {

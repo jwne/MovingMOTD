@@ -17,7 +17,14 @@
  */
 package me.bigteddy98.movingmotd;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelPipeline;
+
 public class NetworkManager {
+
+	public ChannelPipeline clientsidePipeline;
+	public ChannelPipeline serversidePipeline;
+	public Channel incomingChannel;
 
 	public NetworkManager(String toHost, int toPort) {
 		// TODO Auto-generated constructor stub
