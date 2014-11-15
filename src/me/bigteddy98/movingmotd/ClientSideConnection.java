@@ -31,7 +31,6 @@ public class ClientSideConnection extends ChannelHandlerAdapter {
 	private final String toHostname;
 	private final int toPort;
 
-	public volatile Channel incomingChannel;
 	public volatile Channel outgoingChannel;
 
 	public ClientSideConnection(NetworkManager networkManager, String hostname, int toPort) {
@@ -46,7 +45,7 @@ public class ClientSideConnection extends ChannelHandlerAdapter {
 		this.networkManager.clientsidePipeline = ctx.pipeline();
 
 		Bootstrap bootstrab = new Bootstrap();
-		bootstrab.group(incomingChannel.eventLoop());
+		bootstrab.group(networkManager.incomingChannel.eventLoop());
 		bootstrab.channel(ctx.channel().getClass());
 		bootstrab.handler(new ServerSideConnectionInitialization(networkManager));
 		bootstrab.option(ChannelOption.AUTO_READ, false);
@@ -55,9 +54,9 @@ public class ClientSideConnection extends ChannelHandlerAdapter {
 			@Override
 			public void operationComplete(ChannelFuture future) throws Exception {
 				if (future.isSuccess()) {
-					incomingChannel.read();
+					networkManager.incomingChannel.read();
 				} else {
-					incomingChannel.close();
+					networkManager.incomingChannel.close();
 				}
 			}
 		});

@@ -17,9 +17,12 @@
  */
 package me.bigteddy98.movingmotd;
 
+import java.util.concurrent.TimeUnit;
+
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 
 public class ClientSideConnectionInitialization extends ChannelInitializer<SocketChannel> {
 
@@ -36,6 +39,7 @@ public class ClientSideConnectionInitialization extends ChannelInitializer<Socke
 	@Override
 	protected void initChannel(SocketChannel ch) throws Exception {
 		ChannelPipeline pipe = ch.pipeline();
+		pipe.addLast("clientside_timout_handler", new ReadTimeoutHandler(30, TimeUnit.SECONDS));
 		pipe.addLast("proxy_handler_clientside", new ClientSideConnection(this.networkManager, this.hostname, this.toPort));
 	}
 }
