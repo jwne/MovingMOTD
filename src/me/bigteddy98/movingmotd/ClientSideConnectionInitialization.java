@@ -18,24 +18,22 @@
 package me.bigteddy98.movingmotd;
 
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 
-public class ConnectionInitialization extends ChannelInitializer<SocketChannel> {
+public class ClientSideConnectionInitialization extends ChannelInitializer<SocketChannel> {
 
-	private final String toHost;
+	private final String hostname;
 	private final int toPort;
 	private final NetworkManager networkManager;
 
-	public ConnectionInitialization(String toHost, int toPort) {
-		this.toHost = toHost;
+	public ClientSideConnectionInitialization(String hostname, int toPort) {
+		this.hostname = hostname;
 		this.toPort = toPort;
-		this.networkManager = new NetworkManager(toHost, toPort);
+		this.networkManager = new NetworkManager(hostname, toPort);
 	}
 
 	@Override
-	protected void initChannel(SocketChannel channel) throws Exception {
-		ChannelPipeline pipe = channel.pipeline();
-		pipe.addLast("proxy_forward", new ServerSideConnection());
+	protected void initChannel(SocketChannel ch) throws Exception {
+
 	}
 }

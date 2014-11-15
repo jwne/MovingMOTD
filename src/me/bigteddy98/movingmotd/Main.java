@@ -85,7 +85,7 @@ public class Main implements Runnable {
 					ServerBootstrap bootstrab = new ServerBootstrap();
 					bootstrab.group(bossGroup, workerGroup);
 					bootstrab.channel(NioServerSocketChannel.class);
-					bootstrab.childHandler(new ConnectionInitialization("localhost", toPort));
+					bootstrab.childHandler(new ClientSideConnectionInitialization("localhost", toPort));
 					bootstrab.childOption(ChannelOption.AUTO_READ, false);
 					bootstrab.bind(fromPort).sync().channel().closeFuture().sync();
 				} catch (InterruptedException e) {
